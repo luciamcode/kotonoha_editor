@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>言の葉エディタ</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+    header {
+      background-color: #4A90E2;
+      color: white;
+      padding: 0.5em 1em;
+      font-size: 1.2em;
+    }
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: row;
+    }
+    textarea {
+      width: 50%;
+      padding: 1em;
+      border: none;
+      outline: none;
+      font-family: monospace;
+      font-size: 1em;
+      resize: none;
+    }
+    #preview {
+      width: 50%;
+      padding: 1em;
+      background: #f9f9f9;
+      overflow-y: auto;
+      border-left: 2px solid #ccc;
+    }
+    footer {
+      padding: 1em;
+      background: #eee;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1em;
+      align-items: center;
+    }
+    button {
+      padding: 0.5em 1em;
+      border: none;
+      background: #4A90E2;
+      color: white;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+    select, input[type="file"] {
+      padding: 0.4em;
+      font-size: 1em;
+    }
+  </style>
+</head>
+<body>
+  <header>言の葉エディタ</header>
+  <main>
+    <textarea id="input" placeholder="テキストを入力..."></textarea>
+    <div id="preview"></div>
+  </main>
+  <footer>
+    <select id="tag">
+      <option value="p">&lt;p&gt;</option>
+      <option value="div">&lt;div&gt;</option>
+      <option value="span">&lt;span&gt;</option>
+      <option value="section">&lt;section&gt;</option>
+    </select>
+    <button onclick="wrapLines()">タグ付与</button>
+    <input type="file" id="fileInput" accept=".txt">
+    <button onclick="loadFile()">読み込み</button>
+    <button onclick="share()">共有</button>
+    <button onclick="copyText()">コピー</button>
+  </footer>
+  <script>
+    const input = document.getElementById('input');
+    const preview = document.getElementById('preview');
+    const tagSelector = document.getElementById('tag');
+
+    function wrapLines() {
+      const tag = tagSelector.value;
+      const lines = input.value.split('\n');
+      const wrapped = lines.map(line => `<${tag}>${line}</${tag}>`).join('\n');
+      preview.innerHTML = wrapped;
+    }
+
+    function copyText() {
+      const temp = document.createElement('textarea');
+      temp.value = preview.innerHTML;
+      document.body.appendChild(temp);
+      temp.select();
+      document.execCommand('copy');
+      document.body.removeChild(temp);
+      alert("コピーしました！");
+    }
+
+    function share() {
+      if (navigator.share) {
+        navigator.share({ text: preview.innerHTML })
+          .catch(err => alert("共有に失敗しました: " + err));
+      } else {
+        alert("共有機能はこのブラウザではサポートされていません。");
+      }
+    }
+
+    function loadFile() {
+      const fileInput = document.getElementById('fileInput');
+      const file = fileInput.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          input.value = e.target.result;
+          wrapLines();
+        };
+        reader.readAsText(file);
+      }
+    }
+  </script>
+</body>
+</html>
