@@ -1,0 +1,20 @@
+{
+  "name": "言の葉エディタ",
+  "short_name": "kotonoha",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "description": "小説用タグ付与＆プレビューエディタ",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
