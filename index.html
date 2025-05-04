@@ -1,0 +1,104 @@
+<!DOCTYPE html><html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>言の葉エディタ</title>
+  <link rel="manifest" href="manifest.json">
+  <style>
+    body { font-family: sans-serif; margin: 0; padding: 0; display: flex; flex-direction: column; height: 100vh; }
+    header { background-color: #4A90E2; color: white; padding: 0.5em 1em; font-size: 1.2em; }
+    main { flex: 1; display: flex; }
+    textarea { width: 40%; padding: 1em; border: none; outline: none; font-family: monospace; font-size: 1em; resize: none; }
+    #previewContainer { width: 60%; display: flex; flex-direction: column; border-left: 2px solid #ccc; }
+    #preview { flex: 1; padding: 1em; background: #f9f9f9; overflow-y: auto; }
+    #codePreview { flex: 1; padding: 1em; background: #fff; border-top: 1px solid #ccc; white-space: pre-wrap; font-family: monospace; overflow-y: auto; }
+    footer { padding: 1em; background: #eee; display: flex; flex-wrap: wrap; gap: 1em; align-items: center; }
+    button, select, input[type="file"] { padding: 0.5em 1em; font-size: 1em; border: none; background: #4A90E2; color: white; cursor: pointer; border-radius: 5px; }
+    #charCount { margin-left: auto; font-size: 0.9em; color: #555; }
+  </style>
+</head>
+<body>
+  <header>言の葉エディタ</header>
+  <main>
+    <textarea id="input" placeholder="テキストを入力..."></textarea>
+    <div id="previewContainer">
+      <div id="preview"></div>
+      <pre id="codePreview"></pre>
+    </div>
+  </main>
+  <footer>
+    <select id="tag">
+      <option value="p">&lt;p&gt;</option>
+      <option value="div">&lt;div&gt;</option>
+      <option value="span">&lt;span&gt;</option>
+      <option value="section">&lt;section&gt;</option>
+      <option value="hr">hr区切り</option>
+    </select>
+    <button onclick="wrapLines()">タグ付与</button>
+    <input type="file" id="fileInput" accept=".txt">
+    <button onclick="loadFile()">読み込み</button>
+    <button onclick="download()">保存</button>
+    <button onclick="copyText()">コピー</button>
+    <button onclick="share()">共有</button>
+    <span id="charCount">0文字</span>
+  </footer>
+  <script>
+    const input = document.getElementById('input');
+    const preview = document.getElementById('preview');
+    const codePreview = document.getElementById('codePreview');
+    const tagSelector = document.getElementById('tag');
+    const charCount = document.getElementById('charCount');
+    const fileInput = document.getElementById('fileInput');input.addEventListener('input', () => {
+  charCount.textContent = input.value.length + '文字';
+});
+
+function wrapLines() {
+  const tag = tagSelector.value;
+  const lines = input.value.split('\n');
+  let wrapped;
+  if (tag === 'hr') {
+    const blocks = input.value.split(/\n{2,}/).map(b => '<div>' + b.replace(/\n/g, '<br>') + '</div>');
+    wrapped = blocks.join('<hr>');
+  } else {
+    wrapped = lines.map(line => `<${tag}>${line}</${tag}>`).join('\n');
+  }
+  preview.innerHTML = wrapped;
+  codePreview.textContent = wrapped;
+}
+
+function copyText() {
+  const temp = document.createElement('textarea');
+  temp.value = codePreview.textContent;
+  document.body.appendChild(temp);
+  temp.select(); document.execCommand('copy');
+  document.body.removeChild(temp);
+  alert('コピーしました！');
+}
+
+function share() {
+  if (navigator.share) navigator.share({ text: codePreview.textContent });
+  else alert('共有機能はサポートされていません');
+}
+
+function loadFile() {
+  const file = fileInput.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => { input.value = e.target.result; wrapLines(); };
+  reader.readAsText(file);
+}
+
+function download() {
+  const blob = new Blob([input.value], { type: 'text/plain' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = 'kotonoha.txt'; a.click();
+}
+
+// PWA service worker
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js');
+}
+
+  </script>
+</body>
+</html>
